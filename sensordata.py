@@ -22,9 +22,9 @@ def query_sensor_data(company_api_key, time_from, time_to, sensor_ids):
     cursor = db.cursor()
     # if not verificacion_company(company_api_key):
     #     return False
-    data = []
     data_json = []
     for id in sensor_ids:
+        data = []
         query = "SELECT SENSOR_DATA.TIME, SENSOR_DATA.DATA, SENSOR_DATA.VALUE , COMPANY.ID, LOCATION.ID, SENSOR.ID FROM COMPANY, LOCATION, SENSOR, SENSOR_DATA WHERE SENSOR.SENSOR_API_KEY = SENSOR_DATA.SENSOR_API_KEY AND LOCATION.COMPANY_ID = COMPANY.ID AND SENSOR.LOCATION_ID = LOCATION.ID AND SENSOR.ID = ? AND SENSOR_DATA.TIME <= ? AND SENSOR_DATA.TIME >= ?"
         result = cursor.execute(query, (id, time_to, time_from))
         for row in result:
@@ -33,4 +33,5 @@ def query_sensor_data(company_api_key, time_from, time_to, sensor_ids):
             id: data
         }
         data_json.append(json)
+
     return data_json

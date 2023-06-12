@@ -14,13 +14,13 @@ def create_tables():
             USERNAME TEXT PRIMARY KEY,
             PASSWORD TEXT
         );
+        INSERT OR IGNORE INTO ADMIN (USERNAME, PASSWORD) VALUES ('admin', 'admin');
 
         CREATE TABLE IF NOT EXISTS COMPANY(
             ID INTEGER PRIMARY KEY AUTOINCREMENT,
             COMPANY_NAME TEXT,
             COMPANY_API_KEY TEXT
         );
-
         CREATE TABLE IF NOT EXISTS LOCATION(
             ID INTEGER PRIMARY KEY AUTOINCREMENT,
             COMPANY_ID INTEGER,
@@ -37,7 +37,7 @@ def create_tables():
         CREATE TABLE IF NOT EXISTS SENSOR(
             ID INTEGER PRIMARY KEY AUTOINCREMENT,
             LOCATION_ID INTEGER,
-            SENSOR_NAME INTEGER,
+            SENSOR_NAME TEXT,
             SENSOR_CATEGORY TEXT,
             SENSOR_META TEXT,
             SENSOR_API_KEY TEXT,
@@ -46,9 +46,7 @@ def create_tables():
                     ON DELETE CASCADE 
                     ON UPDATE NO ACTION
         );
-        DROP TABLE SENSOR_DATA;
-        
-        CREATE TABLE SENSOR_DATA(
+        CREATE TABLE IF NOT EXISTS SENSOR_DATA(
             ID INTEGER PRIMARY KEY AUTOINCREMENT,
             SENSOR_API_KEY TEXT,
             TIME INTEGER,

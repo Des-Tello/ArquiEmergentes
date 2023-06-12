@@ -34,10 +34,14 @@ def create_location():
     password = cred[1]
     if auth.valida_admin(user, password):
         try:
-            admin.create_location(req['company_id'], req['location_name'], req['location_county'], req['location_city'], req['location_meta'])
-            response = {
-                "response": "Localidad creada exitosamente!"
-            }
+            if admin.create_location(req['company_id'], req['location_name'], req['location_county'], req['location_city'], req['location_meta']):
+                response = {
+                        "response": "Localidad creada exitosamente!"
+                    }
+            else:
+                response = {
+                    "response": "Company_id no encontrado"
+                }                
         except Exception as e:
             # print(f"Ocurrió un error: {str(e)}")
             response = {
@@ -62,7 +66,7 @@ def create_sensor():
             }
         else:
             response = {
-                "response": "Hubo un error al crear el sensor"
+                "response": "location_id no encontrada"
             }
     else:
         response = {
@@ -75,15 +79,20 @@ def create_sensor():
 @app.route('/api/v1/muestra_todo', methods = ["GET"])
 def muestra_todo():
     req = request.get_json()
+    response = {}
+    location = []
+    sensor = []
+    sensor_data = []
     for row in get_all.location_get_all(req['company_api_key']):
-        print(row)
+        location.append(row)
+    response['location'] = location
     for row in get_all.sensor_get_all(req['company_api_key']):
-        print(row)
+        sensor.append(row)
+    response['sensor'] = sensor
     for row in get_all.sensor_data_get_all(req['company_api_key']):
-        print(row)
-    response = {
-            "response": "Datos mostrados correctamente!"
-        }
+        sensor_data.append(row)
+    response['sensor_data'] = sensor_data
+
     return jsonify(response)
 
 # MUESTRA UNO
@@ -91,13 +100,14 @@ def muestra_todo():
 def location_muestra_uno():
     req = request.get_json()
     data = False
+    location = []
     for row in get_one.location_get_one(req['company_api_key'], req['id']):
-        print(row)
         data = True
+        location.append(row)
 
     if (data):
         response = {
-                "response": "Datos mostrados correctamente!"
+                "locations": location
         }
     else:
         response = {
@@ -109,13 +119,14 @@ def location_muestra_uno():
 def sensor_muestra_uno():
     req = request.get_json()
     data = False
+    sensor = []
     for row in get_one.sensor_get_one(req['company_api_key'], req['id']):
-        print(row)
+        sensor.append(row)
         data = True
 
     if (data):
         response = {
-                "response": "Datos mostrados correctamente!"
+                "sensors": sensor
         }
     else:
         response = {
@@ -127,12 +138,13 @@ def sensor_muestra_uno():
 def sensordata_muestra_uno():
     req = request.get_json()
     data = False
+    sensor_data = []
     for row in get_one.sensor_data_get_one(req['company_api_key'], req['id']):
-        print(row)
+        sensor_data.append(row)
         data = True
     if (data):
         response = {
-                "response": "Datos mostrados correctamente!"
+                "sensors_data": sensor_data
         }
     else:
         response = {
@@ -170,7 +182,7 @@ def edita_sensor():
 @app.route('/api/v1/edita_sensor_data', methods=['PUT'])
 def edita_sensor_data():
     req = request.get_json()
-    if edit.modify_sensor_data(req['company_api_key'], req['id'], req['data']):
+    if edit.modify_sensor_data(req['company_api_key'], req['id'], req['time'], req['data']):
         response = {
                 "response": "Sensor data editada correctamente"
         }
@@ -224,30 +236,42 @@ def delete_sensor_data():
 @app.route('/api/v1/sensor_data', methods = ['POST'])
 def insert_sensor_data():
     req = request.get_json()
-    if sensordata.insert_sensor_data(req['sensor_api_key'], req['time'], req['data']):
+    if auth.verificación_sensor(req['sensor_api_key']):
+        if sensordata.insert_sensor_data(req['sensor_api_key'], req['time'], req['data']):
+            response = {
+                "response": "Sensor data insertada correctamente"
+            }  
+        else:
+            response = {
+                "response": "Error al insertar sensor data"
+            }
+    else: 
         response = {
-            "response": "Sensor data insertada correctamente"
-        }  
-    else:
-        response = {
-            "response": "Error al insertar sensor data"
-        }
+                "response": "Sensor_api_key invalido"
+            }
     return jsonify(response)
 
 # CONSULTA SENSOR DATA
 @app.route('/api/v1/sensor_data', methods = ['GET'])
 def get_sensor_data():
     req = request.get_json()
+    cred = request.headers['credential'].split('-')
+    user = cred[0]
+    password = cred[1]
     response = sensordata.query_sensor_data(req['company_api_key'], req['time_from'], req['time_to'], req['sensor_ids'])
-    if response:
-        print(response)
-        response = {
-            "response": "Sensor data obtenida correctamente"
-        }  
+    if auth.valida_admin(user, password):
+        if response:
+            response = {
+                "Sensor_Data": response
+            }  
+        else:
+            response = {
+                "response": "Error al obtener sensor data"
+            }   
     else:
         response = {
-            "response": "Error al obtener sensor data"
-        }        
+            "response": "Credenciales no validas"
+        }      
     return jsonify(response)
 
 
