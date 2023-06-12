@@ -1,5 +1,5 @@
 from flask import Flask, jsonify, request
-import sensordata, admin, delete, edit, get_all, get_one
+import sensordata, admin, delete, edit, get_all, get_one, auth
 from db import create_tables
 
 app = Flask(__name__)
@@ -7,47 +7,67 @@ app = Flask(__name__)
 @app.route('/api/v1/create_company', methods = ["POST"])
 def create_company():
     req = request.get_json()
-    try:
-        admin.create_company(req['company_name'], req['company_api_key'])
+    cred = request.headers['credential'].split('-')
+    user = cred[0]
+    password = cred[1]
+    if auth.valida_admin(user, password):
+        try:
+            admin.create_company(req['company_name'], req['company_api_key'])
+            response = {
+                "response": "Compañia creada exitosamente!"
+            }
+        except:
+            response = {
+                "response": "Hubo un error al crear la compañia"
+            }
+    else:
         response = {
-            "response": "Compañia creada exitosamente!"
-        }
-    except:
-        response = {
-            "response": "Hubo un error al crear la compañia"
-        }
+            "response": "Credenciales no validas"
+        }        
     return jsonify(response)
     
 @app.route('/api/v1/create_location', methods = ["POST"])
 def create_location():
     req = request.get_json()
-    try:
-        admin.create_location(req['company_id'], req['location_name'], req['location_county'], req['location_city'], req['location_meta'])
+    cred = request.headers['credential'].split('-')
+    user = cred[0]
+    password = cred[1]
+    if auth.valida_admin(user, password):
+        try:
+            admin.create_location(req['company_id'], req['location_name'], req['location_county'], req['location_city'], req['location_meta'])
+            response = {
+                "response": "Localidad creada exitosamente!"
+            }
+        except Exception as e:
+            # print(f"Ocurrió un error: {str(e)}")
+            response = {
+                "response": "Hubo un error al crear la localidad"
+            }
+    else:
         response = {
-            "response": "Localidad creada exitosamente!"
-        }
-    except Exception as e:
-        # print(f"Ocurrió un error: {str(e)}")
-        response = {
-            "response": "Hubo un error al crear la localidad"
-        }
-
+            "response": "Credenciales no validas"
+        } 
     return jsonify(response)
 
 @app.route('/api/v1/create_sensor', methods = ["POST"])
 def create_sensor():
     req = request.get_json()
-
-    if admin.create_sensor(req['location_id'], req['sensor_name'], req['sensor_category'], req['sensor_meta'], req['sensor_api_key']):
-        response = {
-            "response": "Sensor creado exitosamente!"
-        }
-
+    cred = request.headers['credential'].split('-')
+    user = cred[0]
+    password = cred[1]
+    if auth.valida_admin(user, password):
+        if admin.create_sensor(req['location_id'], req['sensor_name'], req['sensor_category'], req['sensor_meta'], req['sensor_api_key']):
+            response = {
+                "response": "Sensor creado exitosamente!"
+            }
+        else:
+            response = {
+                "response": "Hubo un error al crear el sensor"
+            }
     else:
-        # print(f"Ocurrió un error: {str(e)}")
         response = {
-            "response": "Hubo un error al crear el sensor"
-        }
+            "response": "Credenciales no validas"
+        } 
     return jsonify(response)
 # FIN ADMIN
 
@@ -124,7 +144,7 @@ def sensordata_muestra_uno():
 @app.route('/api/v1/edita_location', methods=['PUT'])
 def edita_location():
     req = request.get_json()
-    if edit.modify_location(req['company_api_key'], req['id'], req['name'], req['country'], req['ciry'], req['meta']):
+    if edit.modify_location(req['company_api_key'], req['id'], req['name'], req['country'], req['city'], req['meta']):
         response = {
                 "response": "Location editada correctamente"
         }
@@ -150,7 +170,7 @@ def edita_sensor():
 @app.route('/api/v1/edita_sensor_data', methods=['PUT'])
 def edita_sensor_data():
     req = request.get_json()
-    if edit.modify_sensor_data(req['company_api_key'], req['id'], req['humidity'], req['temperature'], req['distance'], req['pressure'], req['light_level']):
+    if edit.modify_sensor_data(req['company_api_key'], req['id'], req['data']):
         response = {
                 "response": "Sensor data editada correctamente"
         }
@@ -204,7 +224,7 @@ def delete_sensor_data():
 @app.route('/api/v1/sensor_data', methods = ['POST'])
 def insert_sensor_data():
     req = request.get_json()
-    if sensordata.insert_sensor_data(req['sensor_api_key'], req['time'], req['humidity'], req['temperature'], req['distance'], req['pressure'], req['light_level']):
+    if sensordata.insert_sensor_data(req['sensor_api_key'], req['time'], req['data']):
         response = {
             "response": "Sensor data insertada correctamente"
         }  

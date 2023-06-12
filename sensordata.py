@@ -2,12 +2,14 @@ from db import get_db
 from auth import verificacion_company, verificación_sensor
 
 
-def insert_sensor_data(sensor_api_key, time, humidity, temperature, distance, pressure, light_level):
+def insert_sensor_data(sensor_api_key, time, data):
     db = get_db()
     cursor = db.cursor()
-    query = "INSERT INTO SENSOR_DATA (SENSOR_API_KEY, TIME, HUMIDITY, TEMPERATURE, DISTANCE, PRESSURE, LIGHT_LEVEL) VALUES (?, ?, ?, ?, ?, ?, ?)"
     try:
-        cursor.execute(query, (sensor_api_key, time, humidity, temperature, distance, pressure, light_level))
+        for variable in data:
+            for llave, valor in variable.items():
+                query = "INSERT INTO SENSOR_DATA (SENSOR_API_KEY, TIME, DATA, VALUE) VALUES (?, ?, ?, ?)"
+                cursor.execute(query, (sensor_api_key, time, llave, valor))
         db.commit()
         return True
     except Exception as e:
@@ -18,10 +20,12 @@ def insert_sensor_data(sensor_api_key, time, humidity, temperature, distance, pr
 def query_sensor_data(company_api_key, time_from, time_to, sensor_ids):
     db = get_db()
     cursor = db.cursor()
+    # if not verificacion_company(company_api_key):
+    #     return False
     data = []
     data_json = []
     for id in sensor_ids:
-        query = "SELECT SENSOR_DATA.TIME, SENSOR_DATA.HUMIDITY, SENSOR_DATA.TEMPERATURE, SENSOR_DATA.DISTANCE, SENSOR_DATA.PRESSURE, SENSOR_DATA.LIGHT_LEVEL, COMPANY.ID, LOCATION.ID, SENSOR.ID FROM COMPANY, LOCATION, SENSOR, SENSOR_DATA WHERE SENSOR.SENSOR_API_KEY = SENSOR_DATA.SENSOR_API_KEY AND LOCATION.COMPANY_ID = COMPANY.ID AND SENSOR.LOCATION_ID = LOCATION.ID AND SENSOR.ID = ? AND SENSOR_DATA.TIME <= ? AND SENSOR_DATA.TIME >= ?"
+        query = "SELECT SENSOR_DATA.TIME, SENSOR_DATA.DATA, SENSOR_DATA.VALUE , COMPANY.ID, LOCATION.ID, SENSOR.ID FROM COMPANY, LOCATION, SENSOR, SENSOR_DATA WHERE SENSOR.SENSOR_API_KEY = SENSOR_DATA.SENSOR_API_KEY AND LOCATION.COMPANY_ID = COMPANY.ID AND SENSOR.LOCATION_ID = LOCATION.ID AND SENSOR.ID = ? AND SENSOR_DATA.TIME <= ? AND SENSOR_DATA.TIME >= ?"
         result = cursor.execute(query, (id, time_to, time_from))
         for row in result:
             data.append(row)

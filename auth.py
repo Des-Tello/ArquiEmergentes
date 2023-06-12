@@ -22,7 +22,7 @@ def verificación_sensor(sensor_api_key):
 def valida_admin(user, password):
     db = get_db()
     cursor = db.cursor()
-    query = f"SELECT * FROM ADMIN WHERE user = ? AND password = ?"
+    query = f"SELECT * FROM ADMIN WHERE username = ? AND password = ?"
     cursor.execute(query, (user, password))
     resultado = cursor.fetchone()
     if resultado:

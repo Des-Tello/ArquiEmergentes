@@ -27,11 +27,13 @@ def modify_sensor(company_api_key, id, name, category, meta):
     else:
         return False
 
-def modify_sensor_data(company_api_key, id, humidity, temperature, distance, pressure, light_level):
+def modify_sensor_data(company_api_key, id, time, data):
     db = get_db()
     cursor = db.cursor()
-    query = "UPDATE SENSOR_DATA SET HUMIDITY = ?, TEMPERATURE = ?, DISTANCE = ?, PRESSURE = ?, LIGHT_LEVEL = ? WHERE SENSOR_API_KEY = (SELECT SENSOR_DATA.SENSOR_API_KEY FROM SENSOR, LOCATION, COMPANY WHERE LOCATION.COMPANY_ID = COMPANY.ID AND SENSOR.LOCATION_ID = LOCATION.ID AND COMPANY.COMPANY_API_KEY = ?) AND ID = ?"
-    result = cursor.execute(query, (humidity, temperature, distance, pressure, light_level, company_api_key, id))
+    for variable in data:
+        for llave, valor in variable.items():
+            query = "UPDATE SENSOR_DATA SET TIME = ?, DATA = ?, VALUE = ? WHERE SENSOR_API_KEY = (SELECT SENSOR_DATA.SENSOR_API_KEY FROM SENSOR, LOCATION, COMPANY WHERE LOCATION.COMPANY_ID = COMPANY.ID AND SENSOR.LOCATION_ID = LOCATION.ID AND COMPANY.COMPANY_API_KEY = ?) AND ID = ?"
+            result = cursor.execute(query, (time, llave, valor, company_api_key, id))
     db.commit()
 
     if result.rowcount > 0:

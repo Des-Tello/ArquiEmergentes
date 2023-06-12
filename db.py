@@ -46,16 +46,14 @@ def create_tables():
                     ON DELETE CASCADE 
                     ON UPDATE NO ACTION
         );
-
-        CREATE TABLE IF NOT EXISTS SENSOR_DATA(
+        DROP TABLE SENSOR_DATA;
+        
+        CREATE TABLE SENSOR_DATA(
             ID INTEGER PRIMARY KEY AUTOINCREMENT,
             SENSOR_API_KEY TEXT,
             TIME INTEGER,
-            HUMIDITY REAL,
-            TEMPERATURE REAL,
-            DISTANCE REAL,
-            PRESSURE REAL,
-            LIGHT_LEVEL REAL,
+            DATA TEXT,
+            VALUE TEXT,
             FOREIGN KEY (SENSOR_API_KEY) 
                 REFERENCES SENSOR (SENSOR_API_KEY) 
                     ON DELETE CASCADE 
