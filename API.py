@@ -249,7 +249,7 @@ def insert_sensor_data():
         response = {
                 "response": "Sensor_api_key invalido"
             }
-    return jsonify(response)
+    return jsonify(response), 201
 
 # CONSULTA SENSOR DATA
 @app.route('/api/v1/sensor_data', methods = ['GET'])
@@ -277,4 +277,4 @@ def get_sensor_data():
 
 if __name__ == "__main__":
     create_tables()
-    app.run(host = '0.0.0.0', port = 8000, debug = True)
+    app.run(debug=True, host="0.0.0.0")
